@@ -1,13 +1,18 @@
-(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ python TestModelInference.py
+(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ python3 -c "import libcamera; print('yes')"
 Traceback (most recent call last):
-  File "/home/fredthedev/ATREUS/TestModelInference.py", line 1, in <module>
-    from picamera2 import Picamera2
-  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/picamera2/__init__.py", line 4, in <module>
-    import libcamera
+  File "<string>", line 1, in <module>
 ModuleNotFoundError: No module named 'libcamera'
-(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ libcamera-hello -t 0
-[2:32:12.556253381] [4326]  INFO Camera camera_manager.cpp:327 libcamera v0.4.0+53-29156679
-[2:32:12.563374306] [4329]  INFO RPI pisp.cpp:720 libpisp ve
+(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ find /usr/lib -name "libcamera*.so"
+/usr/lib/aarch64-linux-gnu/libcamera-base.so
+/usr/lib/aarch64-linux-gnu/libcamera_app.so
+/usr/lib/aarch64-linux-gnu/libcamera.so
+(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ export PYTHONPATH=$PYTHONPATH:/usr/lib/aarch64-linux-gnu
+(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ export PYTHONPATH=$PYTHONPATH:/usr/lib/aarch64-linux-gnu/
+(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ python3 -c "import libcamera; print('yes')"
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ImportError: dynamic module does not define module export function (PyInit_libcamera)
+
 
 -----------------
 
