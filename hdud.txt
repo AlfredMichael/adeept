@@ -37,7 +37,25 @@ cv2.destroyAllWindows()
 picam2.stop()
 
 
-
+source) if is_cli else self.predictor(source=source, stream=stream) ^^  ^^^^^^^^^^^^^^^^ ^ ^ Thread-36 (run_inference)^^
+^^
+^^^  ^^^^^^^^^^^^^^^^   ^ ^:
+  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/model.py", line 550, in predict
+^^^ ^^^^ ^^^^
+^^^^^^^^^^^  ^ ^Traceback (most recent call last):
+^  File "/usr/lib/python3.11/threading.py", line 1038, in _bootstrap_inner
+^^     ^^^^ ^^^^  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/model.py", line 550, in predict
+^^^^^^^^^^^  ^ ^^^^ ^return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+^^     ^^^^^^^^^^^    ^^^^^  ^^^^^ ^^ ^^^ ^self.run()^^^^^^^^^return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/model.py", line 550, in predict
+    return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/predictor.py", line 216, in __call__
+    return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/model.py", line 550, in predict
+    return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+                                                                    ^^^^^^^^^^^^^^^^^
 
 
 -----------------
