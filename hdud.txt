@@ -1,1 +1,37 @@
-https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=600
+import cv2
+from picamera2 import Picamera2
+from ultralytics import YOLO
+
+# Initialize the camera
+picam2 = Picamera2()
+picam2.preview_configuration.main.size = (640, 480)  # Set resolution
+picam2.preview_configuration.main.format = "RGB888"  # Set color format
+picam2.configure("preview")
+picam2.start()
+
+# Load YOLOv8 model
+model = YOLO("yolov8n.pt")  # You can use "yolov8s.pt" for a stronger model
+
+while True:
+    # Capture frame from camera
+    frame = picam2.capture_array()
+
+    # Perform YOLOv8 object detection
+    results = model.predict(frame)
+
+    # Draw bounding boxes on detected objects
+    for result in results:
+        for box in result.boxes:
+            x1, y1, x2, y2 = box.xyxy[0].tolist()
+            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+
+    # Display the frame with detections
+    cv2.imshow("YOLOv8 Live Detection", frame)
+
+    # Exit if 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+# Cleanup
+cv2.destroyAllWindows()
+picam2.close()
