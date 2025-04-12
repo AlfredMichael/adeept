@@ -1,20 +1,11 @@
-export PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages
+atreus_venv) fredthedev@raspberrypi:~/ATREUS $ python TestCamera.py
+ERROR:cannot import name 'QGlPicamera2' from 'picamera2.previews.qt' (/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/picamera2/previews/qt.py)
+To fix this, look at: 
+	File: /home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/picamera2/previews/qt_previews.py
+	Line: 36
+To see the full stack trace, type this terminal command:
+	 nano /tmp/tmpwtm0xgw6
 
-echo 'export PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages' >> ~/.bashrc
-source ~/.bashrc
-
-python3 -c "import libcamera; print('Libcamera is working!')"
-
-
-(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ python TestCamera.py
-Traceback (most recent call last):
-  File "/home/fredthedev/ATREUS/TestCamera.py", line 1, in <module>
-    from picamzero import Camera
-  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/picamzero/__init__.py", line 3, in <module>
-    from .Camera import Camera
-  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/picamzero/Camera.py", line 10, in <module>
-    from libcamera import Transform
-ModuleNotFoundError: No module named 'libcamera'
 
 
 
