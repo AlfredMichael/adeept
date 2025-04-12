@@ -1,22 +1,13 @@
-Collecting python-prctl
-  Using cached python-prctl-1.8.1.tar.gz (28 kB)
-  Preparing metadata (setup.py) ... error
-  error: subprocess-exited-with-error
-  
-  × python setup.py egg_info did not run successfully.
-  │ exit code: 1
-  ╰─> [1 lines of output]
-      You need to install libcap development headers to build this module
-      [end of output]
-  
-  note: This error originates from a subprocess, and is likely not a problem with pip.
-error: metadata-generation-failed
-
-× Encountered error while generating package metadata.
-╰─> See above for output.
-
-note: This is an issue with the package mentioned above, not pip.
-hint: See above for details.
+(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ python TestModelInference.py
+Traceback (most recent call last):
+  File "/home/fredthedev/ATREUS/TestModelInference.py", line 1, in <module>
+    from picamera2 import Picamera2
+  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/picamera2/__init__.py", line 4, in <module>
+    import libcamera
+ModuleNotFoundError: No module named 'libcamera'
+(atreus_venv) fredthedev@raspberrypi:~/ATREUS $ libcamera-hello -t 0
+[2:32:12.556253381] [4326]  INFO Camera camera_manager.cpp:327 libcamera v0.4.0+53-29156679
+[2:32:12.563374306] [4329]  INFO RPI pisp.cpp:720 libpisp ve
 
 -----------------
 
