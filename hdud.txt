@@ -1,35 +1,35 @@
 import cv2
-import threading
-from picamera2 import Picamera2
-from ultralytics import YOLO
 import torch
 import os
+from picamera2 import Picamera2
+from ultralytics import YOLO
 
 # Load YOLO model
 model = YOLO("yolov8n.pt")
 
-# Dynamically optimize PyTorch to use all CPU cores
-torch.set_num_threads(os.cpu_count())  # Uses all available cores
+# Optimize PyTorch to use all CPU cores
+torch.set_num_threads(os.cpu_count())
 
-# Initialize camera
+# Initialize the camera
 picam2 = Picamera2()
 picam2.start()
-
-# Function to run inference asynchronously
-def run_inference(frame):
-    results = model(frame)
-    return results[0].plot()
 
 while True:
     frame = picam2.capture_array()  # Capture frame
 
-    # Run YOLOv8 inference asynchronously in a thread
-    thread = threading.Thread(target=run_inference, args=(frame,))
-    thread.start()
+    # Convert frame to RGB format (fixes channel issues)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
-    # Show the frame while inference is running (avoids blocking)
-    cv2.imshow("Camera Preview", frame)
+    # Run YOLOv8 inference synchronously
+    results = model(frame)
 
+    # Plot detections on the frame
+    annotated_frame = results[0].plot()
+
+    # Display the annotated frame
+    cv2.imshow("YOLOv8 Real-Time Inference", annotated_frame)
+
+    # Exit on 'q' key press
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
@@ -37,25 +37,46 @@ cv2.destroyAllWindows()
 picam2.stop()
 
 
-source) if is_cli else self.predictor(source=source, stream=stream) ^^  ^^^^^^^^^^^^^^^^ ^ ^ Thread-36 (run_inference)^^
-^^
-^^^  ^^^^^^^^^^^^^^^^   ^ ^:
-  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/model.py", line 550, in predict
-^^^ ^^^^ ^^^^
-^^^^^^^^^^^  ^ ^Traceback (most recent call last):
-^  File "/usr/lib/python3.11/threading.py", line 1038, in _bootstrap_inner
-^^     ^^^^ ^^^^  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/model.py", line 550, in predict
-^^^^^^^^^^^  ^ ^^^^ ^return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
-^^     ^^^^^^^^^^^    ^^^^^  ^^^^^ ^^ ^^^ ^self.run()^^^^^^^^^return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/model.py", line 550, in predict
-    return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
-                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/predictor.py", line 216, in __call__
-    return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/ultralytics/engine/model.py", line 550, in predict
-    return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
-                                                                    ^^^^^^^^^^^^^^^^^
+
+import cv2
+import threading
+from queue import Queue
+from picamera2 import Picamera2
+from ultralytics import YOLO
+
+# Load YOLO model
+model = YOLO("yolov8n.pt")
+
+# Initialize camera
+picam2 = Picamera2()
+picam2.start()
+
+# Create a queue for frames
+frame_queue = Queue()
+
+def run_inference():
+    while True:
+        if not frame_queue.empty():
+            frame = frame_queue.get()
+            results = model(frame)
+            annotated_frame = results[0].plot()
+            cv2.imshow("YOLOv8 Real-Time Inference", annotated_frame)
+        
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+# Start the inference thread
+thread = threading.Thread(target=run_inference)
+thread.start()
+
+while True:
+    frame = picam2.capture_array()
+    frame_queue.put(frame)  # Add frame to queue
+
+cv2.destroyAllWindows()
+picam2.stop()
+thread.join()
+
 
 
 -----------------
