@@ -1,10 +1,21 @@
-atreus_venv) fredthedev@raspberrypi:~/ATREUS $ python TestCamera.py
-ERROR:cannot import name 'QGlPicamera2' from 'picamera2.previews.qt' (/home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/picamera2/previews/qt.py)
-To fix this, look at: 
-	File: /home/fredthedev/ATREUS/atreus_venv/lib/python3.11/site-packages/picamera2/previews/qt_previews.py
-	Line: 36
-To see the full stack trace, type this terminal command:
-	 nano /tmp/tmpwtm0xgw6
+import cv2
+from picamzero import Camera
+
+# Initialize the camera
+cam = Camera()
+
+# Start capturing live frames
+while True:
+    frame = cam.capture()  # Capture a frame from PicamZero
+
+    # Show the frame using OpenCV
+    cv2.imshow("Camera Preview", frame)
+
+    # Exit when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+cv2.destroyAllWindows()
 
 
 
