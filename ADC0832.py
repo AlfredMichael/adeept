@@ -1,71 +1,39 @@
-#!/usr/bin/env python
 import RPi.GPIO as GPIO
 import time
 
-ADC_CS  = 11
-ADC_CLK = 12
-ADC_DIO = 13
+SERVO_PIN = 15  # Your connected GPIO pin
 
-def setup():
-	GPIO.setwarnings(False)
-	GPIO.setmode(GPIO.BOARD)    #Number GPIOs by its physical location
-	GPIO.setup(ADC_CS, GPIO.OUT)
-	GPIO.setup(ADC_CLK, GPIO.OUT)
+# Setup
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(SERVO_PIN, GPIO.OUT)
 
-def destroy():
-	GPIO.cleanup()
+# Create PWM instance (50Hz for servos)
+pwm = GPIO.PWM(SERVO_PIN, 50)
+pwm.start(0)
 
-def getResult():     # get ADC result
-	GPIO.setup(ADC_DIO, GPIO.OUT)
-	GPIO.output(ADC_CS, 0)
-	
-	GPIO.output(ADC_CLK, 0)
-	GPIO.output(ADC_DIO, 1);  time.sleep(0.000002)
-	GPIO.output(ADC_CLK, 1);  time.sleep(0.000002)
-	GPIO.output(ADC_CLK, 0)
+def set_angle(angle):
+    duty_cycle = (angle / 18) + 2  # Convert angle to duty cycle (approximation)
+    GPIO.output(SERVO_PIN, True)
+    pwm.ChangeDutyCycle(duty_cycle)
+    time.sleep(0.5)
+    GPIO.output(SERVO_PIN, False)
+    pwm.ChangeDutyCycle(0)  # Stop sending signal
 
-	GPIO.output(ADC_DIO, 1);  time.sleep(0.000002)
-	GPIO.output(ADC_CLK, 1);  time.sleep(0.000002)
-	GPIO.output(ADC_CLK, 0)
+try:
+    while True:
+        print("Moving to 0°")
+        set_angle(0)  # Move servo to 0°
+        time.sleep(1)
 
-	GPIO.output(ADC_DIO, 0);  time.sleep(0.000002)
+        print("Moving to 90°")
+        set_angle(90)  # Move servo to 90°
+        time.sleep(1)
 
-	GPIO.output(ADC_CLK, 1)
-	GPIO.output(ADC_DIO, 1);  time.sleep(0.000002)
-	GPIO.output(ADC_CLK, 0)
-	GPIO.output(ADC_DIO, 1);  time.sleep(0.000002)
-	
-	dat1 = 0
-	for i in range(0, 8):
-		GPIO.output(ADC_CLK, 1);  time.sleep(0.000002)
-		GPIO.output(ADC_CLK, 0);  time.sleep(0.000002)
-		GPIO.setup(ADC_DIO, GPIO.IN)
-		dat1 = dat1 << 1 | GPIO.input(ADC_DIO)  # or ?
-	
-	dat2 = 0
-	for i in range(0, 8):
-		dat2 = dat2 | GPIO.input(ADC_DIO) << i
-		GPIO.output(ADC_CLK, 1);  time.sleep(0.000002)
-		GPIO.output(ADC_CLK, 0);  time.sleep(0.000002)
-	
-	GPIO.output(ADC_CS, 1)
-	GPIO.setup(ADC_DIO, GPIO.OUT)
+        print("Moving to 180°")
+        set_angle(180)  # Move servo to 180°
+        time.sleep(1)
 
-	if dat1 == dat2:
-		return dat1
-	else:
-		return 0
-
-def loop():
-	while True:
-		res = getResult()
-		print('res = %d' % res)
-		time.sleep(0.4)
-
-if __name__ == '__main__':
-	setup()
-	try:
-		loop()
-	except KeyboardInterrupt:
-		destroy()
-
+except KeyboardInterrupt:
+    print("Stopping servo control.")
+    pwm.stop()
+    GPIO.cleanup()
