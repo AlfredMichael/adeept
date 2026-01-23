@@ -1,33 +1,3 @@
-import os
-import json
+College: Technological University of Shannon 
 
-def validate_and_merge_json_lines(directory, output_file="merged.json"):
-    merged_data = []
-    for filename in os.listdir(directory):
-        if filename.endswith(".json"):
-            filepath = os.path.join(directory, filename)
-            try:
-                with open(filepath, "r", encoding="utf-8") as f:
-                    for i, line in enumerate(f, start=1):
-                        line = line.strip()
-                        if not line:
-                            continue
-                        try:
-                            obj = json.loads(line)
-                            merged_data.append(obj)
-                        except json.JSONDecodeError as e:
-                            print(f"[INVALID] {filename} (line {i}) - {e}")
-                            break
-                    else:
-                        print(f"[VALID]   {filename}")
-            except Exception as e:
-                print(f"[ERROR]   {filename} - {e}")
-
-    # Save everything into one big JSON array
-    with open(output_file, "w", encoding="utf-8") as out:
-        json.dump(merged_data, out, indent=2)
-    print(f"\nMerged {len(merged_data)} objects into {output_file}")
-
-if __name__ == "__main__":
-    target_directory = "./json_files"
-    validate_and_merge_json_lines(target_directory)
+Parchment 
