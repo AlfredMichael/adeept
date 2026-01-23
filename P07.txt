@@ -2,3 +2,14 @@ College: Technological University of Shannon
 
 Parchment 
 
+@echo off
+setlocal
+
+:: Set your folder containing the .json files
+set dir=C:\Users\Michael\Documents\json_files
+
+:: Merge all JSON objects (one per line) into a single array
+type "%dir%\*.json" | jq -s '.' > merged.json
+
+echo Merged JSON written to merged.json
+pause
