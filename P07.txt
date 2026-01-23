@@ -1,15 +1,14 @@
-College: Technological University of Shannon 
-
-Parchment 
-
 @echo off
 setlocal
 
-:: Set your folder containing the .json files
+:: Folder containing your NDJSON files
 set dir=C:\Users\Michael\Documents\json_files
 
-:: Merge all JSON objects (one per line) into a single array
-type "%dir%\*.json" | jq -s '.' > merged.json
+:: Concatenate all files and feed them line by line into jq
+type "%dir%\*.json" | jq -R -s '
+  split("\n") 
+  | map(select(length>0) | fromjson)
+' > merged.json
 
 echo Merged JSON written to merged.json
 pause
