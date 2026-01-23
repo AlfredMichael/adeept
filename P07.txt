@@ -1,20 +1,26 @@
 import os
 import json
 
-def validate_json_files(directory):
+def validate_json_lines(directory):
     for filename in os.listdir(directory):
         if filename.endswith(".json"):
             filepath = os.path.join(directory, filename)
             try:
                 with open(filepath, "r", encoding="utf-8") as f:
-                    json.load(f)
-                print(f"[VALID]   {filename}")
-            except json.JSONDecodeError as e:
-                print(f"[INVALID] {filename} - {e}")
+                    for i, line in enumerate(f, start=1):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            json.loads(line)
+                        except json.JSONDecodeError as e:
+                            print(f"[INVALID] {filename} (line {i}) - {e}")
+                            break
+                    else:
+                        print(f"[VALID]   {filename}")
             except Exception as e:
                 print(f"[ERROR]   {filename} - {e}")
 
 if __name__ == "__main__":
-    # Change this to the directory you want to check
     target_directory = "./json_files"
-    validate_json_files(target_directory)
+    validate_json_lines(target_directory)
