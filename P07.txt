@@ -1,88 +1,20 @@
-#!/usr/bin/env python
-import RPi.GPIO as GPIO
-import time
+import os
+import json
 
-# Pins is a dictionary
-pins = {'a': 11, 'b': 12, 'c': 13, 'd': 15, 'e': 16, 'f': 18, 'g': 22, 'dp': 7}
+def validate_json_files(directory):
+    for filename in os.listdir(directory):
+        if filename.endswith(".json"):
+            filepath = os.path.join(directory, filename)
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    json.load(f)
+                print(f"[VALID]   {filename}")
+            except json.JSONDecodeError as e:
+                print(f"[INVALID] {filename} - {e}")
+            except Exception as e:
+                print(f"[ERROR]   {filename} - {e}")
 
-def setup():
-    GPIO.setmode(GPIO.BOARD)
-    for pin in pins.values():
-        GPIO.setup(pin, GPIO.OUT)  # Set pin mode as output
-        GPIO.output(pin, GPIO.LOW)
-
-def displayCharacter(a, b, c, d, e, f, g, dp):
-    GPIO.output(pins['a'], a)
-    GPIO.output(pins['b'], b)
-    GPIO.output(pins['c'], c)
-    GPIO.output(pins['d'], d)
-    GPIO.output(pins['e'], e)
-    GPIO.output(pins['f'], f)
-    GPIO.output(pins['g'], g)
-    GPIO.output(pins['dp'], dp)
-
-def loop():
-    while True:
-        print('Display 1')
-        displayCharacter(0, 1, 1, 0, 0, 0, 0, 0)
-        time.sleep(1)
-        print('Display 2')
-        displayCharacter(1, 1, 0, 1, 1, 0, 1, 0)
-        time.sleep(1)
-        print('Display 3')
-        displayCharacter(1, 1, 1, 1, 0, 0, 1, 0)
-        time.sleep(1)
-        print('Display 4')
-        displayCharacter(0, 1, 1, 0, 0, 1, 1, 0)
-        time.sleep(1)
-        print('Display 5')
-        displayCharacter(1, 0, 1, 1, 0, 1, 1, 0)
-        time.sleep(1)
-        print('Display 6')
-        displayCharacter(1, 0, 1, 1, 1, 1, 1, 0)
-        time.sleep(1)
-        print('Display 7')
-        displayCharacter(1, 1, 1, 0, 0, 0, 0, 0)
-        time.sleep(1)
-        print('Display 8')
-        displayCharacter(1, 1, 1, 1, 1, 1, 1, 0)
-        time.sleep(1)
-        print('Display 9')
-        displayCharacter(1, 1, 1, 1, 0, 1, 1, 0)
-        time.sleep(1)
-        print('Display a')
-        displayCharacter(1, 1, 1, 0, 1, 1, 1, 0)
-        time.sleep(1)
-        print('Display b')
-        displayCharacter(0, 0, 1, 1, 1, 1, 1, 0)
-        time.sleep(1)
-        print('Display c')
-        displayCharacter(1, 0, 0, 1, 1, 1, 0, 0)
-        time.sleep(1)
-        print('Display d')
-        displayCharacter(0, 1, 1, 1, 1, 0, 1, 0)
-        time.sleep(1)
-        print('Display e')
-        displayCharacter(1, 0, 0, 1, 1, 1, 1, 0)
-        time.sleep(1)
-        print('Display f')
-        displayCharacter(1, 0, 0, 0, 1, 1, 1, 0)
-        time.sleep(1)
-        print('Display .')
-        displayCharacter(0, 0, 0, 0, 0, 0, 0, 1)
-        time.sleep(1)
-        print('Display Nothing')
-        displayCharacter(0, 0, 0, 0, 0, 0, 0, 0)
-        time.sleep(1)
-
-def destroy():
-    for pin in pins.values():
-        GPIO.output(pin, GPIO.LOW)
-    GPIO.cleanup()  # Release resource
-
-if __name__ == '__main__':  # Program starts from here
-    setup()
-    try:
-        loop()
-    except KeyboardInterrupt:  # When 'Ctrl+C' is pressed, the destroy() will be executed.
-        destroy()
+if __name__ == "__main__":
+    # Change this to the directory you want to check
+    target_directory = "./json_files"
+    validate_json_files(target_directory)
