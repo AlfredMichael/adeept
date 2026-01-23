@@ -1,3 +1,9 @@
 College: Technological University of Shannon 
 
 Parchment 
+
+#!/bin/bash
+dir="./json_files"
+
+# Concatenate all lines, wrap them in an array
+jq -s '.' "$dir"/*.json > merged.json
