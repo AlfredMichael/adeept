@@ -8,4 +8,4 @@ dir="./json_files"
 # Concatenate all lines, wrap them in an array
 jq -s '.' "$dir"/*.json > merged.json
 
-"C:/Program Files/jq/jq.exe" -s '.' "C:/Users/Michael/Documents/json_files"/*.json > merged.json
+jq -s -R -c 'split("\n") | map(select(length>0) | fromjson)' "%dir%\*.json" > merged.json
