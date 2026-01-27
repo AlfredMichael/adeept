@@ -1,14 +1,36 @@
-@echo off
-setlocal
+import time
+import psutil
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
-:: Folder containing your NDJSON files
-set dir=C:\Users\Michael\Documents\json_files
+class NewFileHandler(FileSystemEventHandler):
+    def on_created(self, event):
+        if not event.is_directory:
+            print(f"New file detected: {event.src_path}")
 
-:: Concatenate all files and feed them line by line into jq
-type "%dir%\*.json" | jq -R -s '
-  split("\n") 
-  | map(select(length>0) | fromjson)
-' > merged.json
+def print_resource_usage(process):
+    cpu = psutil.cpu_percent(interval=None)
+    mem = psutil.virtual_memory().percent
+    proc_cpu = process.cpu_percent(interval=None)
+    proc_mem = process.memory_info().rss / (1024 * 1024)
 
-echo Merged JSON written to merged.json
-pause
+    print(f"[SYSTEM] CPU: {cpu}% | RAM: {mem}%")
+    print(f"[PROCESS] CPU: {proc_cpu}% | RAM: {proc_mem:.2f} MB")
+
+folder_to_watch = "/path/to/folder"
+
+event_handler = NewFileHandler()
+observer = Observer()
+observer.schedule(event_handler, folder_to_watch, recursive=False)
+observer.start()
+
+process = psutil.Process()  # current Python process
+
+try:
+    while True:
+        print_resource_usage(process)
+        time.sleep(2)
+except KeyboardInterrupt:
+    observer.stop()
+
+observer.join()
