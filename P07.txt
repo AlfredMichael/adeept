@@ -1,36 +1,16 @@
-import time
-import psutil
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+while inotifywait -e modify,create,delete /path/to/dir; do
+    echo "Directory changed!"
+done
 
-class NewFileHandler(FileSystemEventHandler):
-    def on_created(self, event):
-        if not event.is_directory:
-            print(f"New file detected: {event.src_path}")
+- event driven but one shot
 
-def print_resource_usage(process):
-    cpu = psutil.cpu_percent(interval=None)
-    mem = psutil.virtual_memory().percent
-    proc_cpu = process.cpu_percent(interval=None)
-    proc_mem = process.memory_info().rss / (1024 * 1024)
+$watcher = New-Object IO.FileSystemWatcher "C:\path"
+$watcher.EnableRaisingEvents = $true
 
-    print(f"[SYSTEM] CPU: {cpu}% | RAM: {mem}%")
-    print(f"[PROCESS] CPU: {proc_cpu}% | RAM: {proc_mem:.2f} MB")
+Register-ObjectEvent $watcher Created -Action { Write-Host "Created!" }
 
-folder_to_watch = "/path/to/folder"
+while ($true) {
+    Wait-Event | Out-Null
+}
 
-event_handler = NewFileHandler()
-observer = Observer()
-observer.schedule(event_handler, folder_to_watch, recursive=False)
-observer.start()
-
-process = psutil.Process()  # current Python process
-
-try:
-    while True:
-        print_resource_usage(process)
-        time.sleep(2)
-except KeyboardInterrupt:
-    observer.stop()
-
-observer.join()
+- event driven
