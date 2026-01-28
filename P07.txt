@@ -1,16 +1,39 @@
-while inotifywait -e modify,create,delete /path/to/dir; do
-    echo "Directory changed!"
-done
+import os
+import zipfile
+import tarfile
 
-- event driven but one shot
+def extract_archive(file_path, extract_to):
+    """Extract .zip, .tar, .tar.gz, .tgz, .tar.bz2 files safely."""
+    try:
+        if zipfile.is_zipfile(file_path):
+            with zipfile.ZipFile(file_path, 'r') as z:
+                z.extractall(extract_to)
+            print(f"Extracted ZIP: {file_path}")
 
-$watcher = New-Object IO.FileSystemWatcher "C:\path"
-$watcher.EnableRaisingEvents = $true
+        elif tarfile.is_tarfile(file_path):
+            with tarfile.open(file_path, 'r:*') as t:
+                t.extractall(extract_to)
+            print(f"Extracted TAR: {file_path}")
 
-Register-ObjectEvent $watcher Created -Action { Write-Host "Created!" }
+        else:
+            print(f"Skipped (not an archive): {file_path}")
 
-while ($true) {
-    Wait-Event | Out-Null
-}
+    except Exception as e:
+        print(f"Error extracting {file_path}: {e}")
 
-- event driven
+
+def extract_all_in_directory(root_dir):
+    """Walk through all folders and extract archives."""
+    for folder, _, files in os.walk(root_dir):
+        for file in files:
+            file_path = os.path.join(folder, file)
+
+            # Supported extensions
+            if file.lower().endswith((".zip", ".tar", ".tar.gz", ".tgz", ".tar.bz2")):
+                extract_archive(file_path, folder)
+
+
+if __name__ == "__main__":
+    target_directory = r"C:\path\to\your\folder"  # Change this
+    extract_all_in_directory(target_directory)
+    print("Done.")
