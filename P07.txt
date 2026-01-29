@@ -1,50 +1,14 @@
-import os
-import zipfile
-import tarfile
-
-def extract_archive(file_path):
-    """Create a folder for the archive and extract into it."""
-    folder = os.path.dirname(file_path)
-    base_name = os.path.splitext(os.path.basename(file_path))[0]
-
-    # Handle .tar.gz, .tar.bz2, .tgz etc.
-    if file_path.lower().endswith((".tar.gz", ".tgz", ".tar.bz2")):
-        base_name = os.path.basename(file_path).split(".tar")[0]
-
-    extract_to = os.path.join(folder, base_name)
-
-    # Create the folder if it doesn't exist
-    os.makedirs(extract_to, exist_ok=True)
-
-    try:
-        if zipfile.is_zipfile(file_path):
-            with zipfile.ZipFile(file_path, 'r') as z:
-                z.extractall(extract_to)
-            print(f"Extracted ZIP to: {extract_to}")
-
-        elif tarfile.is_tarfile(file_path):
-            with tarfile.open(file_path, 'r:*') as t:
-                t.extractall(extract_to)
-            print(f"Extracted TAR to: {extract_to}")
-
-        else:
-            print(f"Skipped (not an archive): {file_path}")
-
-    except Exception as e:
-        print(f"Error extracting {file_path}: {e}")
+gst-launch-1.0 \
+  filesrc location=your_raw12_file.raw ! \
+  rawvideoparse format=bayer width=1920 height=1080 bpp=12 pattern=rggb ! \
+  bayer2rgb ! \
+  videoconvert ! \
+  fpsdisplaysink video-sink=autovideosink text-overlay=true
 
 
-def extract_all_in_directory(root_dir):
-    """Walk through all folders and extract archives into their own subfolders."""
-    for folder, _, files in os.walk(root_dir):
-        for file in files:
-            file_path = os.path.join(folder, file)
-
-            if file.lower().endswith((".zip", ".tar", ".tar.gz", ".tgz", ".tar.bz2")):
-                extract_archive(file_path)
-
-
-if __name__ == "__main__":
-    target_directory = r"C:\path\to\your\folder"  # Change this
-    extract_all_in_directory(target_directory)
-    print("Done.")
+gst-launch-1.0 \
+  filesrc location=your_raw12_file.raw ! \
+  rawvideoparse format=bayer width=1920 height=1080 bpp=12 pattern=rggb ! \
+  bayer2rgb ! \
+  videoconvert ! \
+  autovideosink
