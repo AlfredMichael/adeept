@@ -80,3 +80,36 @@ def validate_and_merge_json_lines(directory, output_file="merged.json", time_key
 if __name__ == "__main__":
     target_directory = "./json_files"
     validate_and_merge_json_lines(target_directory)
+
+
+
+
+
+
+
+
+import json
+
+def validate_ndjson_file(path):
+    print(f"Validating: {path}")
+    valid = True
+
+    with open(path, "r", encoding="utf-8") as f:
+        for i, line in enumerate(f, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                json.loads(line)
+            except json.JSONDecodeError as e:
+                print(f"[INVALID] Line {i}: {e}")
+                valid = False
+
+    if valid:
+        print("[VALID] File is proper NDJSON")
+    else:
+        print("[FAILED] File contains invalid JSON lines")
+
+if __name__ == "__main__":
+    validate_ndjson_file("yourfile.ndjson")
+``
