@@ -1,8 +1,14 @@
 import os
 import json
 
-def validate_and_merge_json_lines(directory, output_file="merged.json", time_key="timestamp"):
+def validate_and_merge_json_lines(
+    directory,
+    output_file="merged.json",
+    time_key="timestamp",
+    example_format="2025-01-03T12:45:00Z"
+):
     merged_data = []
+    missing_timestamp = []  # store (filename, line_number, object)
 
     for filename in os.listdir(directory):
         if filename.endswith(".json"):
@@ -15,19 +21,45 @@ def validate_and_merge_json_lines(directory, output_file="merged.json", time_key
                             continue
                         try:
                             obj = json.loads(line)
+
+                            # Track file + line for debugging later
+                            obj["_source_file"] = filename
+                            obj["_source_line"] = i
+
+                            # Check timestamp presence
+                            if time_key not in obj or obj[time_key] in (None, ""):
+                                missing_timestamp.append((filename, i, obj))
+
                             merged_data.append(obj)
+
                         except json.JSONDecodeError as e:
                             print(f"[INVALID] {filename} (line {i}) - {e}")
                             break
                     else:
                         print(f"[VALID]   {filename}")
+
             except Exception as e:
                 print(f"[ERROR]   {filename} - {e}")
 
-    # ---- NEW PART: sort chronologically ----
-    merged_data.sort(key=lambda x: x.get(time_key))
+    # ---- REPORT MISSING TIMESTAMPS ----
+    if missing_timestamp:
+        print("\n=== Missing Timestamp Objects ===")
+        for filename, line, obj in missing_timestamp:
+            print(f"\nFile: {filename} (line {line})")
+            print(f"Expected field: '{time_key}'")
+            print(f"Expected format: {example_format}")
+            print("Actual object:")
+            print(json.dumps(obj, indent=2))
+        print("\nTotal objects missing timestamps:", len(missing_timestamp))
+    else:
+        print("\nAll objects contain timestamps.")
 
-    # Save everything into one big JSON array
+    # ---- SAFE CHRONOLOGICAL SORT ----
+    merged_data.sort(
+        key=lambda x: (x.get(time_key) is None, x.get(time_key))
+    )
+
+    # ---- WRITE OUTPUT ----
     with open(output_file, "w", encoding="utf-8") as out:
         json.dump(merged_data, out, indent=2)
 
