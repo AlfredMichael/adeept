@@ -1,4 +1,38 @@
-gst-launch-1.0 \
-  filesrc location=captured_raw16.raw blocksize=31850496 num-buffers=1 ! \
-  capsfilter caps="video/x-bayer,format=(string)bggr16le,width=(int)4608,height=(int)3456,depth=(int)10,framerate=(fraction)1/1,pixel-aspect-ratio=(fraction)1/1" ! \
-  bayer2rgb ! videoconvert ! videoscale ! video/x-raw,width=1920 ! imagefreeze ! ximagesink sync=false
+import os
+import json
+
+def validate_and_merge_json_lines(directory, output_file="merged.json", time_key="timestamp"):
+    merged_data = []
+
+    for filename in os.listdir(directory):
+        if filename.endswith(".json"):
+            filepath = os.path.join(directory, filename)
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    for i, line in enumerate(f, start=1):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            obj = json.loads(line)
+                            merged_data.append(obj)
+                        except json.JSONDecodeError as e:
+                            print(f"[INVALID] {filename} (line {i}) - {e}")
+                            break
+                    else:
+                        print(f"[VALID]   {filename}")
+            except Exception as e:
+                print(f"[ERROR]   {filename} - {e}")
+
+    # ---- NEW PART: sort chronologically ----
+    merged_data.sort(key=lambda x: x.get(time_key))
+
+    # Save everything into one big JSON array
+    with open(output_file, "w", encoding="utf-8") as out:
+        json.dump(merged_data, out, indent=2)
+
+    print(f"\nMerged {len(merged_data)} objects into {output_file}")
+
+if __name__ == "__main__":
+    target_directory = "./json_files"
+    validate_and_merge_json_lines(target_directory)
