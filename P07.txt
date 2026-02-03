@@ -1,115 +1,39 @@
 import os
 import json
-import re
 
-def is_malformed_timestamp(ts):
-    """
-    Detect timestamps like 2025-01-03T12:45:41.00Z
-    without modifying them.
-    """
-    if ts is None:
-        return True
-
-    # Valid patterns:
-    # - YYYY-MM-DDTHH:MM:SSZ
-    # - YYYY-MM-DDTHH:MM:SS.xxxZ (any number of digits)
-    valid = re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$", ts)
-    return valid is None
-
-
-def validate_and_merge_json_lines(directory, output_file="merged.json", time_key="timestamp"):
-    merged_data = []
-    malformed = []
-
-    for filename in os.listdir(directory):
-        if filename.endswith(".json"):
-            filepath = os.path.join(directory, filename)
-            try:
-                with open(filepath, "r", encoding="utf-8") as f:
-                    for i, line in enumerate(f, start=1):
-                        line = line.strip()
-                        if not line:
-                            continue
-                        try:
-                            obj = json.loads(line)
-
-                            obj["_source_file"] = filename
-                            obj["_source_line"] = i
-
-                            ts = obj.get(time_key)
-
-                            # Detect malformed timestamps (but DO NOT change them)
-                            if is_malformed_timestamp(ts):
-                                malformed.append((filename, i, ts, obj))
-
-                            merged_data.append(obj)
-
-                        except json.JSONDecodeError as e:
-                            print(f"[INVALID] {filename} (line {i}) - {e}")
-                            break
-                    else:
-                        print(f"[VALID]   {filename}")
-
-            except Exception as e:
-                print(f"[ERROR]   {filename} - {e}")
-
-    # ---- REPORT MALFORMED TIMESTAMPS ----
-    if malformed:
-        print("\n=== Malformed Timestamps Detected ===")
-        for filename, line, ts, obj in malformed:
-            print(f"\nFile: {filename} (line {line})")
-            print(f"Timestamp found: {ts}")
-            print("Full object:")
-            print(json.dumps(obj, indent=2))
-        print("\nTotal malformed timestamps:", len(malformed))
-    else:
-        print("\nAll timestamps are valid.")
-
-    # ---- SAFE SORT (malformed or missing timestamps go last) ----
-    merged_data.sort(
-        key=lambda x: (is_malformed_timestamp(x.get(time_key)), x.get(time_key))
-    )
-
-    # ---- WRITE OUTPUT ----
+def merge_ndjson(directory, output_file="merged.ndjson"):
     with open(output_file, "w", encoding="utf-8") as out:
-        json.dump(merged_data, out, indent=2)
+        total = 0
 
-    print(f"\nMerged {len(merged_data)} objects into {output_file}")
+        for filename in os.listdir(directory):
+            if filename.endswith(".json") or filename.endswith(".ndjson"):
+                filepath = os.path.join(directory, filename)
 
+                try:
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        valid = True
+                        for i, line in enumerate(f, start=1):
+                            line = line.strip()
+                            if not line:
+                                continue
 
-if __name__ == "__main__":
-    target_directory = "./json_files"
-    validate_and_merge_json_lines(target_directory)
+                            try:
+                                json.loads(line)  # validate line
+                            except json.JSONDecodeError as e:
+                                print(f"[INVALID] {filename} (line {i}) - {e}")
+                                valid = False
+                                break
 
+                            out.write(line + "\n")
+                            total += 1
 
+                        if valid:
+                            print(f"[VALID]   {filename}")
 
+                except Exception as e:
+                    print(f"[ERROR]   {filename} - {e}")
 
-
-
-
-
-import json
-
-def validate_ndjson_file(path):
-    print(f"Validating: {path}")
-    valid = True
-
-    with open(path, "r", encoding="utf-8") as f:
-        for i, line in enumerate(f, start=1):
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                json.loads(line)
-            except json.JSONDecodeError as e:
-                print(f"[INVALID] Line {i}: {e}")
-                valid = False
-
-    if valid:
-        print("[VALID] File is proper NDJSON")
-    else:
-        print("[FAILED] File contains invalid JSON lines")
+    print(f"\nMerged {total} lines into {output_file}")
 
 if __name__ == "__main__":
-    validate_ndjson_file("yourfile.ndjson")
-``
+    merge_ndjson("./json_files")
