@@ -1,14 +1,25 @@
 import os
 import json
+import re
 
-def validate_and_merge_json_lines(
-    directory,
-    output_file="merged.json",
-    time_key="timestamp",
-    example_format="2025-01-03T12:45:00Z"
-):
+def is_malformed_timestamp(ts):
+    """
+    Detect timestamps like 2025-01-03T12:45:41.00Z
+    without modifying them.
+    """
+    if ts is None:
+        return True
+
+    # Valid patterns:
+    # - YYYY-MM-DDTHH:MM:SSZ
+    # - YYYY-MM-DDTHH:MM:SS.xxxZ (any number of digits)
+    valid = re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$", ts)
+    return valid is None
+
+
+def validate_and_merge_json_lines(directory, output_file="merged.json", time_key="timestamp"):
     merged_data = []
-    missing_timestamp = []  # store (filename, line_number, object)
+    malformed = []
 
     for filename in os.listdir(directory):
         if filename.endswith(".json"):
@@ -22,13 +33,14 @@ def validate_and_merge_json_lines(
                         try:
                             obj = json.loads(line)
 
-                            # Track file + line for debugging later
                             obj["_source_file"] = filename
                             obj["_source_line"] = i
 
-                            # Check timestamp presence
-                            if time_key not in obj or obj[time_key] in (None, ""):
-                                missing_timestamp.append((filename, i, obj))
+                            ts = obj.get(time_key)
+
+                            # Detect malformed timestamps (but DO NOT change them)
+                            if is_malformed_timestamp(ts):
+                                malformed.append((filename, i, ts, obj))
 
                             merged_data.append(obj)
 
@@ -41,22 +53,21 @@ def validate_and_merge_json_lines(
             except Exception as e:
                 print(f"[ERROR]   {filename} - {e}")
 
-    # ---- REPORT MISSING TIMESTAMPS ----
-    if missing_timestamp:
-        print("\n=== Missing Timestamp Objects ===")
-        for filename, line, obj in missing_timestamp:
+    # ---- REPORT MALFORMED TIMESTAMPS ----
+    if malformed:
+        print("\n=== Malformed Timestamps Detected ===")
+        for filename, line, ts, obj in malformed:
             print(f"\nFile: {filename} (line {line})")
-            print(f"Expected field: '{time_key}'")
-            print(f"Expected format: {example_format}")
-            print("Actual object:")
+            print(f"Timestamp found: {ts}")
+            print("Full object:")
             print(json.dumps(obj, indent=2))
-        print("\nTotal objects missing timestamps:", len(missing_timestamp))
+        print("\nTotal malformed timestamps:", len(malformed))
     else:
-        print("\nAll objects contain timestamps.")
+        print("\nAll timestamps are valid.")
 
-    # ---- SAFE CHRONOLOGICAL SORT ----
+    # ---- SAFE SORT (malformed or missing timestamps go last) ----
     merged_data.sort(
-        key=lambda x: (x.get(time_key) is None, x.get(time_key))
+        key=lambda x: (is_malformed_timestamp(x.get(time_key)), x.get(time_key))
     )
 
     # ---- WRITE OUTPUT ----
@@ -64,6 +75,7 @@ def validate_and_merge_json_lines(
         json.dump(merged_data, out, indent=2)
 
     print(f"\nMerged {len(merged_data)} objects into {output_file}")
+
 
 if __name__ == "__main__":
     target_directory = "./json_files"
