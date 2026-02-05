@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 
 def merge_ndjson(directory, output_file="merged.ndjson"):
     with open(output_file, "w", encoding="utf-8") as out:
@@ -18,7 +19,7 @@ def merge_ndjson(directory, output_file="merged.ndjson"):
                                 continue
 
                             try:
-                                json.loads(line)  # validate line
+                                json.loads(line)
                             except json.JSONDecodeError as e:
                                 print(f"[INVALID] {filename} (line {i}) - {e}")
                                 valid = False
@@ -35,5 +36,13 @@ def merge_ndjson(directory, output_file="merged.ndjson"):
 
     print(f"\nMerged {total} lines into {output_file}")
 
+
 if __name__ == "__main__":
-    merge_ndjson("./json_files")
+    if len(sys.argv) < 2:
+        print("Usage: python merge.py <directory> [output_file]")
+        sys.exit(1)
+
+    directory = sys.argv[1]
+    output_file = sys.argv[2] if len(sys.argv) > 2 else "merged.ndjson"
+
+    merge_ndjson(directory, output_file)
